@@ -4,20 +4,27 @@ import { socket } from "./socket";
 
 function App() {
   useEffect(() => {
-    // opens the socket when the app mounts so the backend sees this browser tab as one client
-    socket.connect();
+      // sends the first client event only after socket.io confirms the connection exists
+      const handleConnect = () => {
+        console.log("client connected:", socket.id);
+        socket.emit("ping", "hello from client");
+      };
 
-    return () => {
-      // closes the socket on cleanup so reloads and unmounts do not leave stale connections
-      socket.disconnect();
-    };
-  }, []);
+      // receives the server reply so we can prove the event path works in both directions
+      const handlePong = (message: string) => {
+        console.log("pong from server:", message);
+      };
 
-  return (
-    <div>
-      <h1>Hide and Seek</h1>
-    </div>
-  );
-}
+      socket.on("connect", handleConnect);
+      socket.on("pong", handlePong);
+      socket.connect();
+
+      return () => {
+        // removes listeners before disconnecting so reloads do not duplicate event handlers
+        socket.off("connect", handleConnect);
+        socket.off("pong", handlePong);
+        socket.disconnect();
+      };
+    }, []);
 
 export default App;
