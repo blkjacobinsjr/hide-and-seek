@@ -37,6 +37,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleConnection(client: Socket) {
+    // hands the socket id to the service so room state starts outside the gateway
+    this.gameService.addPlayerToRoom(client.id);
     // logs the socket id so we can prove that each browser tab gets its own connection
     console.log(`Client connected: ${client.id}`);
   }
